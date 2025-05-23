@@ -7,4 +7,4 @@ router.get('/:id', controller.getProductById);
 router.get('/search/query', controller.searchProducts);
 router.post('/', controller.createProduct);
 
-module.exports = router;
+module.exports = router; 

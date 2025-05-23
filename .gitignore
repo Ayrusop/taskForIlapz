@@ -1,2 +1,7 @@
-node_modules/
-package-lock.json
+# Ignore root-level Node.js dependencies
+/node_modules/
+/package-lock.json
+
+# Ignore frontend dependencies and lock file
+/frontend/node_modules/
+/frontend/package-lock.json
