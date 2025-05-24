@@ -1,36 +1,56 @@
 const Product = require('../models/Product');
 
-// GET all products
+const { emitProductCreated, emitProductUpdated } = require('../sockets/productSocket'); 
 exports.getAllProducts = async (req, res) => {
     const products = await Product.find().sort({ createdAt: -1 });
     res.json(products);
 };
 
-// GET one product
 exports.getProductById = async (req, res) => {
     const product = await Product.findById(req.params.id);
+    if (!product) return res.status(404).json({ message: 'Product not found' });
     res.json(product);
 };
 
-// Search products
 exports.searchProducts = async (req, res) => {
-    const query = req.query.q;
+    const q = req.query.q;
     const products = await Product.find({
         $or: [
-            { name: new RegExp(query, 'i') },
-            { description: new RegExp(query, 'i') }
-        ]
+            { name: { $regex: q, $options: 'i' } },
+            { description: { $regex: q, $options: 'i' } },
+        ],
     });
     res.json(products);
 };
 
-// POST create product
 exports.createProduct = async (req, res) => {
     const product = new Product(req.body);
-    await product.save();
+    const newProduct = await product.save();
 
-    // Notify all clients via socket.io
-    req.io.emit('newProduct', product);
+    emitProductCreated(newProduct); 
 
-    res.status(201).json(product);
+    res.status(201).json(newProduct);
 };
+
+exports.updateProduct = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const updatedProduct = await Product.findByIdAndUpdate(
+            id,
+            req.body,
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedProduct) {
+            return res.status(404).json({ message: "Product not found" });
+        }
+
+        emitProductUpdated(updatedProduct); 
+
+        res.json(updatedProduct);
+    } catch (error) {
+        res.status(500).json({ message: "Error updating product", error });
+    }
+};
+  

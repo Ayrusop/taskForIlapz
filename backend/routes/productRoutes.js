@@ -3,8 +3,8 @@ const router = express.Router();
 const controller = require('../controllers/productController');
 
 router.get('/', controller.getAllProducts);
+router.get('/search', controller.searchProducts);
 router.get('/:id', controller.getProductById);
-router.get('/search/query', controller.searchProducts);
 router.post('/', controller.createProduct);
-
+router.put("/:id", controller.updateProduct);
 module.exports = router; 
